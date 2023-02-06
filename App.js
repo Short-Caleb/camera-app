@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, SafeAreaView, Button, Pressable, Image } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Pressable, Image } from 'react-native';
 import {Camera, CameraType} from 'expo-camera';
 import React, {useState, useRef, useEffect } from 'react'
+import * as MediaLibrary from 'expo-media-library';
 import Feather from '@expo/vector-icons/Feather';
 
 
@@ -10,6 +11,7 @@ export default function App() {
  const [cameraType, setCameraType] = useState(CameraType.front);
  const [flashMode, setFlashMode] = useState(Camera.Constants.FlashMode.off);
  const [hasCameraPermission, setHasCameraPermission] = useState(null);
+ const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
  const [image, setImage] = useState(null);
  
  
@@ -18,6 +20,7 @@ export default function App() {
 
  useEffect(() => {
     (async () => {
+      MediaLibrary.requestPermissionsAsync();
       const cameraStatus = await Camera.requestCameraPermissionsAsync();
       setHasCameraPermission(cameraStatus.status === 'granted');
     })();
@@ -36,12 +39,25 @@ const takePicture = async () => {
       try{
         const data = await cameraRef.current.takePictureAsync();
         console.log(data);
-        setImage(data);
+        setImage(data.uri);
       } catch (error) {
         console.log(error);
       }
     }
-}
+};
+
+const savePicture = async () => {
+  if (image) {
+    try {
+      const asset = await MediaLibrary.createAssetAsync(image);
+      alert('Picture Saved!!');
+      setImage(null);
+      console.log('saved successfully');
+    } catch (error)  {
+      console.log(error);
+    }
+  }
+};
 
 if(!image) {
   return (
@@ -56,7 +72,7 @@ if(!image) {
       </Camera>
       <View style={styles.controlContainer}>
         <Pressable onPress={takePicture}>
-        <Feather name='circle' style={styles.cameraButton} size={48} color='white' />
+        <Feather name='camera' style={styles.cameraButton} size={48} color='white' />
         </Pressable>
         </View> 
     </SafeAreaView>
@@ -64,14 +80,14 @@ if(!image) {
 } else {
   return(
       <SafeAreaView style={styles.container}>
-      <Image source={{uri: image.uri}} style={styles.camera} />
+      <Image source={{uri: image}} style={styles.camera} />
 
       <View style={styles.controlContainer}>
         <Pressable onPress={ () => setImage(null)}>
-        <Feather name='circle' style={styles.cameraButton} size={48} color='white' />
+        <Feather name='thumbs-down' style={styles.cameraButton} size={48} color='white' />
         </Pressable>
-        <Pressable onPress={ () => setImage(null)}>
-        <Feather name='circle' style={styles.cameraButton} size={48} color='white' />
+        <Pressable onPress={savePicture}>
+        <Feather name='thumbs-up' style={styles.cameraButton} size={48} color='white' />
         </Pressable>
         </View> 
     </SafeAreaView> 
@@ -92,7 +108,7 @@ const styles = StyleSheet.create({
   },
   controlContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-around',
     alignItems: 'center',
    backgroundColor: 'black'
   },
