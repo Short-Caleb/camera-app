@@ -59,6 +59,16 @@ const savePicture = async () => {
   }
 };
 
+/*const takeVideo = async () => {
+  console.log('in takeVideo')
+  if(cameraRef) {
+    console.log('..with cameraRef')
+    try{
+      const data = await cameraRef.current.recordAsync
+    }
+  }
+}*/
+
 if(!image) {
   return (
     <SafeAreaView style={styles.container}>
